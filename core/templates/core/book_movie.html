@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Book Movie</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+
+<style>
+/* turns the button grey and disables hover  */
+.btn-selected {
+    background-color:#6c757d !important;   /* Bootstrap ‘secondary’ grey */
+    border-color:#6c757d !important;
+    color:#fff !important;
+}
+</style>
+
+
+<body style="background-color:#f8f9fa;">
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Book Your Movie</h2>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <h4 class="card-title">{{ movie.title }}</h4>
+
+            <!-- ====================  Django FORM  ==================== -->
+            <form method="post">
+                {% csrf_token %}
+                {% if error %}
+                  <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+
+                <!-- ─────────── STEP 1 – Theater buttons ─────────── -->
+                <h5 class="mb-2">1️⃣ Choose a Theater</h5>
+                <div id="theater-buttons" class="mb-4">
+                    {% for t in theaters %}
+                        <button type="button" class="btn btn-info m-1"
+                                onclick="selectTheater(this,{{ t.id }}, '{{ t.name }}')">
+                            {{ t.name }}
+                        </button>
+                    {% empty %}
+                        <p>No theaters available.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- ─────────── STEP 2 – Movie buttons ─────────── -->
+                <h5 id="movie-title" class="mb-2" style="display:none;">
+                    2️⃣ Movies in <span id="sel-theater-name"></span>
+                </h5>
+                <div id="movie-buttons" class="mb-4"></div>
+
+                <!-- ─────────── STEP 3 – Show‑time buttons ─────────── -->
+                <h5 id="show-title" class="mb-2" style="display:none;">
+                    3️⃣ Show‑times for <span id="sel-movie-name"></span>
+                </h5>
+                <div id="show-buttons" class="mb-4"></div>
+
+                <!-- Hidden fields posted to Django -->
+                <input type="hidden" id="show_id_field"  name="show_id">
+                <input type="hidden" id="selected_seats_input" name="selected_seats">
+
+                <!-- Select‑Seats trigger (hidden until a show is chosen) -->
+                <button type="button" class="btn btn-info"
+                        data-bs-toggle="modal" data-bs-target="#seatModal"
+                        style="display:none;">
+                    Select Seats
+                </button>
+
+                <!-- Seat‑Selection MODAL -->
+                <div class="modal fade" id="seatModal" tabindex="-1">
+                  <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Select Seats</h5>
+                        <button type="button" class="btn-close"
+                                data-bs-dismiss="modal"
+                                onclick="updateSelectedSeats()"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div id="seat-grid"
+                             class="d-flex flex-wrap gap-2 justify-content-center"></div>
+                      </div>
+                      <div class="modal-footer">
+                        <button class="btn btn-success"
+                                data-bs-dismiss="modal"
+                                onclick="updateSelectedSeats()">Confirm</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Display chosen seats -->
+                <p id="selected_seats_display"
+                   class="mt-3 text-success fw-bold"></p>
+
+                <!-- Final submit -->
+                <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ─────────────  MAIN SCRIPT  ───────────── -->
+<script>
+/* ---------- constants / DOM refs ---------- */
+const seatMap   = JSON.parse('{{ seat_map_json|safe }}');   // {showId:{available,booked}}
+const seatGrid  = document.getElementById('seat-grid');
+const selInput  = document.getElementById('selected_seats_input');
+const selDisp   = document.getElementById('selected_seats_display');
+const showField = document.getElementById('show_id_field');
+const seatBtn   = document.querySelector('[data-bs-target="#seatModal"]');
+
+const movieBtnsDiv = document.getElementById('movie-buttons');
+const showBtnsDiv  = document.getElementById('show-buttons');
+const movieTitleH4 = document.getElementById('movie-title');
+const showTitleH4  = document.getElementById('show-title');
+
+let currentTheater  = null;
+let selectedSeats   = new Set();
+
+/* ---------- cascading buttons ---------- */
+/* --- ONLY Theater → Show step --- */
+
+function selectTheater(btn,tid, tName){
+    document.querySelectorAll('#theater-buttons .btn')
+            .forEach(b => b.classList.remove('btn-selected'));
+    btn.classList.add('btn-selected');   // grey‑out this one
+    currTheater = tid;
+
+    document.getElementById('sel-theater-name').innerText = tName;
+    showTitleH4.style.display  = 'block';
+    showBtnsDiv.innerHTML      = '';
+    seatBtn.style.display      = 'none';
+    showField.value            = '';
+
+    /* Directly fetch shows for this movie at the chosen theater */
+    const movieId = {{ movie.id }};           // inject the current movie id
+
+    fetch(`/get-shows/${tid}/${movieId}/`)
+      .then(r=>r.json())
+      .then(data=>{
+          showBtnsDiv.innerHTML = data.shows.map(s =>
+              `<button type="button" class="btn btn-success m-1"
+                       onclick="pickShow(this,${s.id})">${s.time}</button>`
+          ).join('');
+      });
+    }
+
+/*function selectTheater(tid, name){
+    currentTheater = tid;
+
+    document.getElementById('sel-theater-name').innerText = name;
+    movieTitleH4.style.display = 'block';
+    showTitleH4.style.display  = 'none';
+    showBtnsDiv.innerHTML      = '';
+    seatBtn.style.display      = 'none';
+    showField.value            = '';
+
+    fetch(`/get-movies/${tid}/`)
+      .then(r=>r.json())
+      .then(data=>{
+          movieBtnsDiv.innerHTML = data.movies.map(m =>
+              `<button type="button" class="btn btn-warning m-1"
+                       onclick="selectMovie(${m.id}, '${m.title.replace("'", "\\'")}')">
+                   ${m.title}
+               </button>`).join('');
+      });
+}
+
+function selectMovie(mid, title){
+    document.getElementById('sel-movie-name').innerText = title;
+    showTitleH4.style.display = 'block';
+    seatBtn.style.display     = 'none';
+    showField.value           = '';
+
+    fetch(`/get-shows/${currentTheater}/${mid}/`)
+      .then(r=>r.json())
+      .then(data=>{
+          showBtnsDiv.innerHTML = data.shows.map(s =>
+              `<button type="button" class="btn btn-success m-1"
+                       onclick="pickShow(${s.id})">${s.time}</button>`
+          ).join('');
+      });
+}*/
+
+function pickShow(btn,showId){
+    document.querySelectorAll('#show-buttons .btn')
+            .forEach(b => b.classList.remove('btn-selected'));
+    btn.classList.add('btn-selected');
+
+    showField.value = showId;
+    seatBtn.style.display = 'inline-block';
+    seatBtn.scrollIntoView({behavior:'smooth'});
+}
+
+/* ---------- seat grid with headings ---------- */
+function renderSeatGrid(showId){
+    selectedSeats.clear();
+    seatGrid.innerHTML = '';
+
+    const data = seatMap[showId];
+    if (!data) return;
+
+    // fetch prices first
+    fetch(`/get-prices/${showId}/`)
+      .then(r=>r.json())
+      .then(({prices})=>{
+          const premiumPrice = prices["Premium"] ?? "-";
+          const regularPrice = prices["Regular"] ?? "-";
+
+          // Build HTML table
+          const tbl = document.createElement('table');
+          tbl.className = 'table table-borderless text-center';
+
+          // Heading row for Premium
+          const headPrem = tbl.insertRow();
+          headPrem.innerHTML = `<th colspan="10" class="text-start">
+                                  ⭐ Premium Seats – ₹${premiumPrice}</th>`;
+
+          addSeatRows(tbl, data, ['A','B']);   // premium rows
+
+          // Heading row for Regular
+          const headReg = tbl.insertRow();
+          headReg.innerHTML = `<th colspan="10" class="text-start">
+                                  🎟️ Regular Seats – ₹${regularPrice}</th>`;
+
+          addSeatRows(tbl, data, ['C','D','E']); // regular rows
+          seatGrid.appendChild(tbl);
+      });
+}
+
+function addSeatRows(tbl, data, rows){
+    rows.forEach(r=>{
+        const tr = tbl.insertRow();
+        for(let c=1; c<=10; c++){
+            const seatId = `${r}${c}`;
+            const td = tr.insertCell();
+            td.style.padding='2px';
+
+            const btn = document.createElement('button');
+            btn.type='button';
+            btn.textContent = seatId;
+            btn.className   = 'btn btn-sm';
+            btn.style.width = '45px';
+
+            if (data.booked.includes(seatId)){
+                btn.classList.add('btn-secondary');
+                btn.disabled = true;
+            } else {
+                const clsColor = r<='B' ? '#6f42c1' : '#0d6efd'; // match colors
+                btn.style.borderColor = clsColor;
+                btn.style.color       = clsColor;
+                btn.onclick = ()=>{
+                    if(selectedSeats.has(seatId)){
+                        selectedSeats.delete(seatId);
+                        btn.classList.remove('btn-success');
+                    }else{
+                        selectedSeats.add(seatId);
+                        btn.classList.add('btn-success');
+                    }
+                };
+            }
+            td.appendChild(btn);
+        }
+    });
+}
+function updateSelectedSeats(){
+    const arr = Array.from(selectedSeats);
+    selInput.value  = arr.join(',');
+    selDisp.textContent = arr.length ? `Selected Seats: ${arr.join(', ')}` : '';
+    bootstrap.Modal.getInstance(
+        document.getElementById('seatModal')
+    ).hide();
+}
+
+/* ---------- modal event binding ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById('seatModal')
+        .addEventListener('show.bs.modal', ()=>{
+            renderSeatGrid(showField.value);
+        });
+    seatBtn.style.display = 'none';  // hide until a show chosen
+});
+
+
+/* ---------- seat grid ---------- */
+/*function renderSeatGrid(showId){
+    selectedSeats.clear();
+    seatGrid.innerHTML = '';
+    const data = seatMap[showId];
+    if (!data) return;
+
+    const sorted = [...data.available].sort((a,b)=>
+        a.charCodeAt(0)-b.charCodeAt(0) ||
+        parseInt(a.slice(1))-parseInt(b.slice(1))
+    );
+
+    sorted.forEach(seat=>{
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = seat;
+
+        if (data.booked.includes(seat)){
+            btn.className = 'btn btn-sm btn-secondary';
+            btn.disabled  = true;
+        }else{
+            btn.className = 'btn btn-sm btn-outline-primary';
+            btn.onclick = ()=>{
+                if (selectedSeats.has(seat)){
+                    selectedSeats.delete(seat);
+                    btn.classList.replace('btn-success','btn-outline-primary');
+                }else{
+                    selectedSeats.add(seat);
+                    btn.classList.replace('btn-outline-primary','btn-success');
+                }
+            };
+        }
+        seatGrid.appendChild(btn);
+    });
+}
+
+function updateSelectedSeats(){
+    const arr = Array.from(selectedSeats);
+    selInput.value  = arr.join(',');
+    selDisp.textContent = arr.length ? `Selected Seats: ${arr.join(', ')}` : '';
+    bootstrap.Modal.getInstance(
+        document.getElementById('seatModal')
+    ).hide();
+}
+
+/* ---------- modal event binding ---------- 
+document.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById('seatModal')
+        .addEventListener('show.bs.modal', ()=>{
+            renderSeatGrid(showField.value);
+        });
+    seatBtn.style.display = 'none';  // hide until a show chosen
+});*/
+
+</script>
+<!-- ─────────────  END SCRIPT  ───────────── -->
+</body>
+</html>

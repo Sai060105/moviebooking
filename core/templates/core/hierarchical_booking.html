@@ -1,0 +1,63 @@
+{% extends 'core/home.html' %}     {# base must have block content! #}
+
+{% block content %}
+<h2 class="mt-4">Select a Theater</h2>
+
+<div id="theaters" class="mb-4">
+  {% for theater in theaters %}
+      <button class="btn btn-info m-2"
+              onclick="loadMovies({{ theater.id }})">
+          {{ theater.name }}
+      </button>
+  {% empty %}
+      <p>No theaters found.  Add some in the admin.</p>
+  {% endfor %}
+</div>
+
+<div id="movies"></div>
+<div id="shows"></div>
+<div id="seat-grid"></div>
+<div id="confirmation"></div>
+
+<script>
+function loadMovies(theaterId) {
+    fetch(`/get-movies/${theaterId}/`)
+      .then(res => res.json())
+      .then(data => {
+          let html = '<h3>Select a Movie</h3>';
+          data.movies.forEach(m => {
+              html += `<button class="btn btn-warning m-2"
+                               onclick="loadShows(${theaterId}, ${m.id})">
+                          ${m.title}
+                       </button>`;
+          });
+          document.getElementById('movies').innerHTML = html;
+          document.getElementById('shows').innerHTML = '';
+          document.getElementById('seat-grid').innerHTML = '';
+          document.getElementById('confirmation').innerHTML = '';
+      });
+}
+
+/* stub – next part we’ll implement */
+function loadShows(theaterId, movieId) {
+    fetch(`/get-shows/${theaterId}/${movieId}/`)
+      .then(res => res.json())
+      .then(data => {
+          let html = '<h3>Select a Show Time</h3>';
+          data.shows.forEach(s => {
+              // clicking this goes to your existing /book/<movie_id>/?show_id=...
+              html += `<a href="/book/${movieId}/?show_id=${s.id}"
+                          class="btn btn-success m-2">
+                          ${s.time}
+                       </a>`;
+          });
+          document.getElementById('shows').innerHTML = html;
+
+          // Clear lower sections
+          document.getElementById('seat-grid').innerHTML = '';
+          document.getElementById('confirmation').innerHTML = '';
+      });
+}
+
+</script>
+{% endblock %}

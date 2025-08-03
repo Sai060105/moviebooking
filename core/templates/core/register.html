@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; background-color: #cfb7b76c; }
+        .register-box {
+            width: 400px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(7, 251, 101, 0.1);
+        }
+        h2 { text-align: center; margin-bottom: 20px; }
+        form p { margin: 30px;}
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 25px;
+            box-shadow: aqua;
+            /* box-sizing: border-box; */
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-box">
+        <h2>Register</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+    </div>
+</body>
+</html>

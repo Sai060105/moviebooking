@@ -1,0 +1,163 @@
+<!--python manage.py runserver-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>INOX Theatre - Home</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .top-bar {
+            background-color: #000;
+            color: white;
+            padding: 5px 0;
+            text-align: right;
+            font-size: 14px;
+        }
+        .top-bar a {
+            color: white;
+            margin: 0 10px;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .movie-card {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .movie-card img {
+            /* max-height: 250px; */
+            /* width: 100%; */
+            object-fit: contain; /* ✅ Avoids cropping */
+            border-radius: 10px;
+        }
+        footer {
+            background-color: #111;
+            color: white;
+            padding: 40px 0;
+            margin-top: 40px;
+        }
+        footer a {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <!-- Top bar -->
+    <div class="top-bar">
+        {% if user.is_authenticated %}
+            <span>Welcome, {{ user.username }}</span>
+            <!--<a href="{% url 'logout' %}">Logout</a>-->
+            <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" style="background: none; border: none; color: white; cursor: pointer;">Logout</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}">SIGN IN</a>
+            <a href="{% url 'register' %}">REGISTER</a>
+        {% endif %}
+    </div>
+
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Inox <span style="color:#00f">Theatre</span></a>
+        <div class="collapse navbar-collapse justify-content-center">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">All Movie</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">About Us</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Feedback</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Contacts</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Banner -->
+    <div class="container mt-4">
+        <img src="https://static.vecteezy.com/system/resources/thumbnails/057/513/199/small/banner-of-empty-scene-with-classic-red-curtain-with-many-small-golden-shiny-stars-on-stage-of-theater-or-cinema-background-photo.jpg" class="img-fluid" alt="Theatre Banner">
+    </div>
+
+    <!-- All Movies Section -->
+    <div class="container mt-5">
+        <h2><strong>All Movies</strong></h2>
+        <!-- {% block content %} {% endblock %} -->
+        <div class="row">
+            {% for movie in movies %}
+            <div class="col-md-3 movie-card">
+                <img src="{{ movie.poster.url }}" class="img-fluid mb-2" alt="{{ movie.title }}">
+                <h6>{{ movie.title }}</h6>
+                <a href="#" class="btn btn-info me-2" data-bs-toggle="modal" data-bs-target="#trailerModal{{ movie.id }}">
+                Trailer
+                </a>
+                <div class="modal fade" id="trailerModal{{ movie.id }}" tabindex="-1" aria-labelledby="trailerModalLabel{{ movie.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content bg-dark text-white">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="trailerModalLabel{{ movie.id }}">{{ movie.title }}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="stopTrailer('{{ movie.id }}')"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div>
+                        <iframe id="trailerFrame{{ movie.id }}" src="{{ movie.trailer_link }}" title="Trailer" width="700" height="450"></iframe>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                </div>
+
+
+                <a href="{% url 'book_movie' movie.id %}" class="btn btn-primary">Book Now</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+    function stopTrailer(movieId) {
+        const frame = document.getElementById(`trailerFrame${movieId}`);
+        frame.src = frame.src;  // Reload the iframe to stop the video
+    }
+    </script>
+    <!-- Footer 
+    <footer class="mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><span style="color:#00f">Inox</span> Theatre</h5>
+                    <p>The customer is at the heart of our unique business model, which include online movie booking show.</p>
+                    <img src="https://i.imgur.com/M5KJ6oS.png" height="25" alt="Payment methods">
+                </div>
+                <div class="col-md-4">
+                    <h6>MENU</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">All Movie</a></li>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Feedback</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>CATEGORY</h6>
+                    <ul class="list-unstyled">
+                        <li>Action</li>
+                        <li>Drama</li>
+                        <li>Comedy</li>
+                        <li>History</li>
+                        <li>Horror</li>
+                    </ul>
+                </div>
+            </div>
+            <hr style="background-color:white;">
+            <p class="text-center small">Copyright © 2025-2026. Developed by You</p>
+        </div>
+    </footer>-->
+
+</body>
+</html>
