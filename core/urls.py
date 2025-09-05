@@ -25,7 +25,8 @@ urlpatterns = [
     
     # path('ticket/pdf/<int:booking_id>/', generate_pdf_ticket, name='generate_pdf_ticket'),
     path("ticket/pdf/<int:booking_id>/", views.download_ticket_pdf, name="download_ticket_pdf"),
-
+    
+    # path('login/?next=/book/5/', views.login_view, name='login')
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

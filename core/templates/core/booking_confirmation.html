@@ -54,11 +54,11 @@
                             {% endfor %}</h5>
                 <h5>Total price: <strong>Rs.{{ total }}</strong></h5>
                 <h5>Booking ID: {{ booking.id }}</h5>
-                <!--{% if not pdf %}
+                {% if not pdf %}
                     <a href="{% url 'download_ticket_pdf' booking.id %}" class="btn btn-primary mt-3">
                         Download Ticket (PDF)
                     </a>
-                {% endif %}-->
+                {% endif %}
 
 
                 <a href="{% url 'home' %}" class="btn btn-success mt-3">Go to Home</a>

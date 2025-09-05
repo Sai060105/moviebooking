@@ -10,20 +10,30 @@
         body {
             font-family: Arial, sans-serif;
         }
-        .top-bar {
-            background-color: #000;
-            color: white;
+        {% comment %} .top-bar {
+            background-color: #8ca6e6ff;
+            color: black;
             padding: 5px 0;
             text-align: right;
             font-size: 14px;
+            text-color:black;
         }
         .top-bar a {
-            color: white;
+            color: black;
             margin: 0 10px;
-        }
-        .navbar-brand {
+        } {% endcomment %}
+        .navbar-brand  {
             font-weight: bold;
             color: #0d6efd;
+        }
+        .nav-item a{
+            padding: 0 0 3px;
+            color: rgba(209, 26, 200, 1);
+        }
+        .top a {
+            margin: 0 10px;
+            color:black;
+            font-size: 18px;
         }
         .movie-card {
             text-align: center;
@@ -49,8 +59,20 @@
 <body>
     
 
-    <!-- Top bar -->
-    <div class="top-bar">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="#">Inox <span style="color:#00f">Theatre</span></a>
+        <div class="collapse navbar-collapse justify-content-center">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">All Movie</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">About Us</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Feedback</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Contacts</a></li>
+            </ul>
+        </div>
+        <!-- Top bar -->
+        <div class="top">
         {% if user.is_authenticated %}
             <span>Welcome, {{ user.username }}</span>
             <!--<a href="{% url 'logout' %}">Logout</a>-->
@@ -62,20 +84,6 @@
             <a href="{% url 'login' %}">SIGN IN</a>
             <a href="{% url 'register' %}">REGISTER</a>
         {% endif %}
-    </div>
-
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Inox <span style="color:#00f">Theatre</span></a>
-        <div class="collapse navbar-collapse justify-content-center">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">All Movie</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">About Us</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Feedback</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Contacts</a></li>
-            </ul>
         </div>
     </nav>
 

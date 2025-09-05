@@ -28,22 +28,40 @@ def download_ticket_pdf(request, booking_id):
 
     # Load the same template you're using for confirmation
     template_path = 'core/booking_confirmation.html'
-
+    
+    '''context = {
+        'booking': booking,
+        'movie': booking.movie,
+        # 'total': booking.total_price,
+        'show': booking.show,
+        'seats': booking.seats.all(),
+        'pdf' : True
+    }'''
+    
+    seats   = booking.seats.all()
+    total = 0
+    for seat in seats.select_related("seat_class"):
+        price = ShowPrice.objects.filter(
+                    show=booking.show,
+                    seat_class=seat.seat_class
+                ).first()
+        total += price.price if price else 0
+    print("Total in PDF view:", total)
+    
     context = {
         'booking': booking,
         'movie': booking.movie,
-        'total': booking.total_price,
+        'total': total,
         'show': booking.show,
         'seats': booking.seats.all(),
         'pdf' : True
     }
-
     # Render the HTML
     template = get_template(template_path)
     html = template.render(context)
-
-    print("Total in PDF view:", total)
-
+    
+    
+    
     # Create a BytesIO buffer for the PDF
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="Ticket_{booking.id}.pdf"'
