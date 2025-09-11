@@ -78,7 +78,7 @@
             <!--<a href="{% url 'logout' %}">Logout</a>-->
             <form action="{% url 'logout' %}" method="post" style="display:inline;">
                 {% csrf_token %}
-                <button type="submit" style="background: none; border: none; color: white; cursor: pointer;">Logout</button>
+                <button type="submit" style="background: none; border: none; color: #22d50aea; cursor: pointer;">Logout</button>
             </form>
         {% else %}
             <a href="{% url 'login' %}">SIGN IN</a>
@@ -87,10 +87,10 @@
         </div>
     </nav>
 
-    <!-- Banner -->
+    {% comment %} <!-- Banner -->
     <div class="container mt-4">
         <img src="https://static.vecteezy.com/system/resources/thumbnails/057/513/199/small/banner-of-empty-scene-with-classic-red-curtain-with-many-small-golden-shiny-stars-on-stage-of-theater-or-cinema-background-photo.jpg" class="img-fluid" alt="Theatre Banner">
-    </div>
+    </div> {% endcomment %}
 
     <!-- All Movies Section -->
     <div class="container mt-5">
