@@ -29,15 +29,6 @@ def download_ticket_pdf(request, booking_id):
     # Load the same template you're using for confirmation
     template_path = 'core/booking_confirmation.html'
     
-    '''context = {
-        'booking': booking,
-        'movie': booking.movie,
-        # 'total': booking.total_price,
-        'show': booking.show,
-        'seats': booking.seats.all(),
-        'pdf' : True
-    }'''
-    
     seats   = booking.seats.all()
     total = 0
     for seat in seats.select_related("seat_class"):
@@ -71,6 +62,7 @@ def download_ticket_pdf(request, booking_id):
     if pisa_status.err:
         return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
+
 
 @login_required
 def booking_confirmation(request, booking_id):
@@ -295,17 +287,11 @@ def login_view(request):
         response.write(result.getvalue())
         return response
     else:
-        return HttpResponse('PDF generation failed')'''
+        return HttpResponse('PDF generation failed')
 
 
+def generate_seats(request, show_id):
 
-
-'''def register_login_view(request):
-    return render(request, 'core/register_login.html')'''
-
-
-# def generate_seats(request, show_id):
-"""
     Generates 50 seats for a specific show.
     Seat format: A1–A10, B1–B10, ..., E1–E10
     
@@ -319,11 +305,4 @@ def login_view(request):
                 created_count += 1
         return HttpResponse(f"✅ {created_count} seats created for Show ID {show_id}")
     except Show.DoesNotExist:
-        return HttpResponse("❌ Invalid Show ID")"""
-
-
-'''def hierarchical_booking(request):
-    theaters = Theater.objects.all()
-    print("DEBUG: theaters =>", theaters)   # will show in runserver console
-    return render(request, 'core/hierarchical_booking.html',
-                  {'theaters': theaters})'''
+        return HttpResponse("❌ Invalid Show ID")'''
