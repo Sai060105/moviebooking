@@ -89,7 +89,7 @@ celerybeat-schedule
 
 # Environments
 .env
-.venv
+.venv/
 env/
 venv/
 ENV/
@@ -138,4 +138,4 @@ static/
 # Temporary files
 *.tmp
 *.temp
-*.txt
+# *.txt
